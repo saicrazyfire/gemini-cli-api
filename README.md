@@ -9,19 +9,24 @@ A FastAPI application that provides a secure, rate-limited HTTP interface to the
 - **Timeouts**: Enforces execution timeouts to prevent hanging processes.
 - **Dependency Management**: Powered by `uv` for fast, reproducible environments.
 
-## Environment Variables
+## Configuration
 
-Settings are managed via `.env` file or environment variables:
+Settings are managed via a `config.yaml` file located in the root of the project.
 
-| Variable | Default | Description |
-|---|---|---|
-| `APP_NAME` | Gemini CLI API Wrapper | Name of the application |
-| `DEBUG` | False | Enable debug mode |
-| `RATE_LIMIT_ENABLED` | True | Toggle rate limiting |
-| `RATE_LIMIT_REQUESTS` | 10 | Max requests per period |
-| `RATE_LIMIT_PERIOD_SECONDS`| 60 | Period in seconds |
-| `DEFAULT_TIMEOUT_SECONDS` | 30 | Default execution timeout |
-| `MAX_TIMEOUT_SECONDS` | 120 | Maximum allowed timeout |
+Example `config.yaml`:
+```yaml
+app_name: "Gemini CLI API Wrapper"
+debug: false
+rate_limit:
+  enabled: true
+  requests: 10
+  period_seconds: 60
+cli:
+  default_timeout_seconds: 30
+  max_timeout_seconds: 120
+```
+
+To use a different configuration file path, you can set the `CONFIG_PATH` environment variable.
 
 ## Quickstart
 
