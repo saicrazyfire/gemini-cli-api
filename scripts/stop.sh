@@ -12,11 +12,13 @@ if [ -f "$PID_FILE" ]; then
     if ps -p "$PID" > /dev/null; then
         echo "Stopping server with PID $PID..."
         kill "$PID"
+        # Wait for the process to actually terminate
+        while ps -p "$PID" > /dev/null; do sleep 1; done
         echo "Server stopped."
-        rm "$PID_FILE"
+        rm -f "$PID_FILE"
     else
         echo "Process $PID is not running. Cleaning up stale PID file."
-        rm "$PID_FILE"
+        rm -f "$PID_FILE"
     fi
 else
     echo "No PID file found at $PID_FILE. The server may not be running via start.sh."

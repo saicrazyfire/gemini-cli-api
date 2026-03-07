@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/start.sh
+# scripts/run.sh
 
 # Get the directory of this script, then go up one level to the project root
 cd "$(dirname "$0")/.." || exit 1

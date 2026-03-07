@@ -4,7 +4,7 @@ import shlex
 import logging
 from dataclasses import dataclass
 from typing import Optional
-from .config import settings
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 

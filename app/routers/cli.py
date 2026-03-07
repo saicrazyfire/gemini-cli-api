@@ -4,15 +4,15 @@ from fastapi import APIRouter, Request, HTTPException
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
-from .models import (
+from app.models import (
     ChatCompletionRequest, 
     ChatCompletionResponse, 
     ChatCompletionChoice, 
     ChatMessage, 
     Usage
 )
-from .cli_executor import execute_gemini_cli
-from .config import settings
+from app.cli_executor import execute_gemini_cli
+from app.config import settings
 
 router = APIRouter(prefix="/v1", tags=["openai"])
 limiter = Limiter(key_func=get_remote_address)
