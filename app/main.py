@@ -32,6 +32,6 @@ app.add_middleware(
 app.include_router(cli.router)
 
 @app.get("/health")
-@limiter.limit(f"{settings.rate_limit_requests}/{settings.rate_limit_period_seconds}seconds")
+@limiter.limit(f"{settings.rate_limit.requests}/{settings.rate_limit.period_seconds}seconds")
 async def health_check(request: Request):
     return {"status": "ok", "version": "0.1.0"}

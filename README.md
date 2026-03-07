@@ -42,19 +42,31 @@ Settings are managed via `.env` file or environment variables:
 **Execute a prompt:**
 
 ```bash
-curl -X POST "http://127.0.0.1:8000/api/v1/gemini/execute" \
+curl -X POST "http://127.0.0.1:8000/v1/chat/completions" \
      -H "Content-Type: application/json" \
-     -d '{"prompt": "What is the capital of France?"}'
+     -d '{"model": "gemini-cli", "messages": [{"role": "user", "content": "What is the capital of France?"}]}'
 ```
 
 **Response Format:**
 
 ```json
 {
-  "success": true,
-  "stdout": "...",
-  "stderr": "",
-  "exit_code": 0,
-  "execution_time_ms": 1500.2
+  "id": "chatcmpl-123",
+  "object": "chat.completion",
+  "created": 1677652288,
+  "model": "gemini-cli",
+  "choices": [{
+    "index": 0,
+    "message": {
+      "role": "assistant",
+      "content": "\n\nThe capital of France is Paris."
+    },
+    "finish_reason": "stop"
+  }],
+  "usage": {
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "total_tokens": 0
+  }
 }
 ```

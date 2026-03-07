@@ -1,29 +1,54 @@
+import time
+import uuid
 from fastapi import APIRouter, Request, HTTPException
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
-from .models import CliRequest, CliResponse
+from .models import (
+    ChatCompletionRequest, 
+    ChatCompletionResponse, 
+    ChatCompletionChoice, 
+    ChatMessage, 
+    Usage
+)
 from .cli_executor import execute_gemini_cli
 from .config import settings
 
-router = APIRouter(prefix="/api/v1/gemini", tags=["gemini"])
+router = APIRouter(prefix="/v1", tags=["openai"])
 limiter = Limiter(key_func=get_remote_address)
 
-@router.post("/execute", response_model=CliResponse)
-@limiter.limit(f"{settings.rate_limit_requests}/{settings.rate_limit_period_seconds}seconds")
-async def execute_cli(request: Request, payload: CliRequest):
+@router.post("/chat/completions", response_model=ChatCompletionResponse)
+@limiter.limit(f"{settings.rate_limit.requests}/{settings.rate_limit.period_seconds}seconds")
+async def create_chat_completion(request: Request, payload: ChatCompletionRequest):
     """
-    Executes the Gemini CLI with the provided prompt.
-    The prompt is safely passed to the '-p' flag of the 'gemini' command.
+    Executes the Gemini CLI compatible with the OpenAI Chat Completions API.
     """
-    if not payload.prompt.strip():
-        raise HTTPException(status_code=400, detail="Prompt cannot be empty")
+    if not payload.messages:
+        raise HTTPException(status_code=400, detail="Messages array cannot be empty")
         
-    response = await execute_gemini_cli(prompt=payload.prompt)
+    # Format messages into a single prompt for the CLI
+    prompt_parts = []
+    for msg in payload.messages:
+        prompt_parts.append(f"{msg.role}: {msg.content}")
+    prompt = "\n\n".join(prompt_parts)
+    
+    response = await execute_gemini_cli(prompt=prompt)
     
     if not response.success:
-        # We still return a 200 OK with the execution status in the body to distinguish 
-        # between an API failure (like 500) and a CLI failure (like invalid CLI usage).
-        pass
+        raise HTTPException(
+            status_code=500, 
+            detail=f"CLI Execution failed. Stderr: {response.stderr}"
+        )
         
-    return response
+    # Construct OpenAI compatible response
+    msg = ChatMessage(role="assistant", content=response.stdout)
+    choice = ChatCompletionChoice(index=0, message=msg, finish_reason="stop")
+    usage = Usage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
+    
+    return ChatCompletionResponse(
+        id=f"chatcmpl-{uuid.uuid4()}",
+        created=int(time.time()),
+        model=payload.model,
+        choices=[choice],
+        usage=usage
+    )

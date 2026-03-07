@@ -1,0 +1,9 @@
+app_name: "Gemini CLI API Wrapper"
+debug: false
+rate_limit:
+  enabled: true
+  requests: 10
+  period_seconds: 60
+cli:
+  default_timeout_seconds: 30
+  max_timeout_seconds: 120
