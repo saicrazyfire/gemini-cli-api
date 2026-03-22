@@ -1,0 +1,26 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      # App config (read-only)
+      - ./config.yaml:/app/config.yaml:ro
+
+      # ── Gemini CLI state (OAuth creds, settings, extensions) ──
+      # Bind-mount a host directory so you can inspect/backup the
+      # OAuth tokens and settings that the CLI stores in ~/.gemini.
+      # Create the directory first:  mkdir -p .gemini
+      - ./.gemini:/root/.gemini
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
