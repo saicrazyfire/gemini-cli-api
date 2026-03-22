@@ -42,6 +42,22 @@ To use a different configuration file path, you can set the `CONFIG_PATH` enviro
 
 3. Access the interactive API docs at `http://127.0.0.1:8000/docs`
 
+## Docker Setup
+
+Before the API can make calls to the Gemini CLI, you must authenticate once.
+Run the following command interactively to complete the OAuth login flow —
+the credentials will be persisted in the bind-mounted `.gemini/` directory:
+
+```bash
+docker run --rm -it \
+  -v $DOCKERDIR/appdata/gemini-cli-api/gemini-home:/root/.gemini \
+  gemini-cli-api:0.34.0 \
+  gemini auth login
+```
+
+After login, start the API normally with `docker compose`. The saved tokens
+will be reused across container restarts.
+
 ## Usage Examples
 
 **Execute a prompt:**

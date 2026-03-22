@@ -63,6 +63,9 @@ pip-delete-this-directory.txt
 docker-compose.yml
 .gemini/
 
+# Local test scripts
+scripts/test2.sh
+
 # Logs
 logs/
 *.log
