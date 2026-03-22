@@ -16,5 +16,4 @@ build
 docker-compose*.yaml
 docker-compose*.yml
 Dockerfile
-README.md
 scripts/

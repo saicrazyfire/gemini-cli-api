@@ -15,6 +15,7 @@ RUN uv sync --frozen --no-dev --no-install-project
 # Copy the application code
 COPY app/ app/
 COPY config.yaml .
+COPY README.md .
 
 # Install the project itself
 RUN uv sync --frozen --no-dev
