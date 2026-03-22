@@ -1,12 +1,14 @@
+import logging
+import shlex
 import subprocess
 import time
-import shlex
-import logging
 from dataclasses import dataclass
 from typing import Optional
+
 from app.config import settings
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class ExecutionResult:
@@ -16,9 +18,15 @@ class ExecutionResult:
     exit_code: int
     execution_time_ms: float
 
-async def execute_gemini_cli(prompt: str, timeout: Optional[int] = None) -> ExecutionResult:
+
+async def execute_gemini_cli(
+    prompt: str,
+    model: str,
+    yolo: bool = False,
+    timeout: Optional[int] = None,
+) -> ExecutionResult:
     start_time = time.time()
-    
+
     # Enforce timeout limits
     if timeout is None:
         timeout = settings.cli.default_timeout_seconds
@@ -30,30 +38,32 @@ async def execute_gemini_cli(prompt: str, timeout: Optional[int] = None) -> Exec
 
     # Construct the command
     # Utilizing shell=False is the core security principle against injection.
-    cmd = ["gemini", "-p", safe_prompt]
-    
-    logger.info(f"Executing CLI command: gemini -p <prompt redacted> with timeout {timeout}s")
-    
+    cmd = ["gemini"]
+    cmd.extend(["--model", model])
+    if yolo:
+        cmd.append("--yolo")
+    cmd.extend(["-p", safe_prompt])
+
+    logger.info(
+        f"Executing CLI command: gemini with model {model}, yolo={yolo}, timeout {timeout}s"
+    )
+
     try:
         # We explicitly run with shell=False for security, which treats the entire safe_prompt as a single argument.
         result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            shell=False
+            cmd, capture_output=True, text=True, timeout=timeout, shell=False
         )
-        
+
         execution_time_ms = (time.time() - start_time) * 1000
-        
+
         return ExecutionResult(
             success=result.returncode == 0,
             stdout=result.stdout,
             stderr=result.stderr,
             exit_code=result.returncode,
-            execution_time_ms=execution_time_ms
+            execution_time_ms=execution_time_ms,
         )
-        
+
     except subprocess.TimeoutExpired as e:
         execution_time_ms = (time.time() - start_time) * 1000
         logger.error(f"Command execution timed out after {timeout} seconds")
@@ -62,7 +72,7 @@ async def execute_gemini_cli(prompt: str, timeout: Optional[int] = None) -> Exec
             stdout="",
             stderr=f"Execution timed out after {timeout} seconds: {str(e)}",
             exit_code=124,  # Standard timeout exit code
-            execution_time_ms=execution_time_ms
+            execution_time_ms=execution_time_ms,
         )
     except FileNotFoundError:
         execution_time_ms = (time.time() - start_time) * 1000
@@ -72,7 +82,7 @@ async def execute_gemini_cli(prompt: str, timeout: Optional[int] = None) -> Exec
             stdout="",
             stderr="Executable 'gemini' not found. Ensure it is installed and in the system PATH.",
             exit_code=127,
-            execution_time_ms=execution_time_ms
+            execution_time_ms=execution_time_ms,
         )
     except Exception as e:
         execution_time_ms = (time.time() - start_time) * 1000
@@ -82,5 +92,24 @@ async def execute_gemini_cli(prompt: str, timeout: Optional[int] = None) -> Exec
             stdout="",
             stderr=f"Unexpected execution error: {str(e)}",
             exit_code=1,
-            execution_time_ms=execution_time_ms
+            execution_time_ms=execution_time_ms,
         )
+
+
+async def get_gemini_version() -> str:
+    """
+    Executes 'gemini --version' and returns the output string.
+    """
+    try:
+        result = subprocess.run(
+            ["gemini", "--version"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            shell=False,
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+        return "unknown"
+    except Exception:
+        return "error"
