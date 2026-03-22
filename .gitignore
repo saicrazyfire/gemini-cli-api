@@ -58,7 +58,6 @@ coverage.xml
 # uv / pip
 pip-log.txt
 pip-delete-this-directory.txt
-uv.lock
 
 # Docker (local override)
 docker-compose.yml
